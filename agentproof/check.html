@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AgentProof · Try a Private n8n Workflow Check</title>
-<meta name="description" content="Try AgentProof's free local-only n8n workflow structural review. No uploads, no keys.">
+<title>ReproLatch · Try a Private n8n Workflow Check</title>
+<meta name="description" content="Try ReproLatch's free local-only n8n workflow structural review. No uploads, no keys.">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#15243c;font:15px/1.6 system-ui,Arial}
 header{background:#102f42;color:#fff;padding:35px max(20px,calc((100vw - 980px)/2))}
@@ -23,7 +23,7 @@ th{background:#eef4f8}.badge{display:inline-block;border-radius:5px;padding:2px 
 small,footer{color:#5b6a80}.hide{display:none}.scroll{overflow-x:auto}
 @media(max-width:610px){.card{padding:14px}th,td{padding:7px;font-size:12px}}
 </style></head><body>
-<header><div class="tag">AGENTPROOF · PRIVATE DEMO</div><h1>Check your n8n workflow export — in your browser.</h1>
+<header><div class="tag">REPROLATCH · PRIVATE DEMO</div><h1>Check your n8n workflow export — in your browser.</h1>
 <p class="sub">A free structural screening before the paid acceptance test. No network upload, account, login or runtime credentials.</p>
 <a href="./" style="color:#a9eed8">← Back to the $79 pilot offer</a></header>
 <main><section class="card"><h2>1. Choose a sanitized n8n JSON export</h2>
@@ -40,10 +40,10 @@ small,footer{color:#5b6a80}.hide{display:none}.scroll{overflow-x:auto}
 <button id="jsonDownload">Download evidence JSON</button><button id="htmlDownload" class="alt">Download HTML report</button>
 <p class="note"><b>Interpretation:</b> REVIEW findings require human checking and are not confirmed bugs. INCONCLUSIVE means not tested. Structural checks cannot establish safe execution, reliable AI judgment, security or production readiness.</p>
 </section><section class="card"><h2>Need more than a linter?</h2>
-<p>The paid <strong>$79 AgentProof pilot</strong> checks up to three owner-approved, non-destructive staging HTTP scenarios and provides an evidence-linked report with observed behavior. The static report shown here is free; the paid service adds executed tests.</p>
-<a class="linkbtn" href="mailto:briefflowge@gmail.com?subject=AgentProof%20%2479%20staging%20pilot%20enquiry">Ask about the pilot</a>
+<p>The paid <strong>$79 ReproLatch pilot</strong> checks up to three owner-approved, non-destructive staging HTTP scenarios and provides an evidence-linked report with observed behavior. The static report shown here is free; the paid service adds executed tests.</p>
+<a class="linkbtn" href="mailto:briefflowge@gmail.com?subject=ReproLatch%20%2479%20staging%20pilot%20enquiry">Ask about the pilot</a>
 <p><small>No production mutations, intrusion testing, AI-behavior certification, credential sharing or guaranteed readiness.</small></p></section>
-<footer>AgentProof v0.3 · Offline-only demo · No third-party analytics, network fetch or uploaded files.</footer></main>
+<footer>ReproLatch v0.3 · Offline-only demo · No third-party analytics, network fetch or uploaded files.</footer></main>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -88,7 +88,7 @@ function inspect(doc){
  if(doc.pinData&&Object.keys(doc.pinData).length)record("PIN_DATA","REVIEW","Pinned sample data present; sanitize before sharing","—","heuristic");
  record("RUNTIME_NOT_TESTED","INCONCLUSIVE","No credentials, workflow execution, integrations or AI behavior have been tested","—","not_tested");
  const summary={ERROR:0,REVIEW:0,INCONCLUSIVE:0};findings.forEach(x=>summary[x.level]++);
- return {product:"AgentProof Offline n8n Screening",version:"0.3-browser-demo",checked_at:new Date().toISOString(),scope:"Selected offline consistency checks; not executed QA",node_count:doc.nodes.length,summary,structural_status:summary.ERROR?"STRUCTURAL_ERRORS":"NO_STRUCTURAL_ERRORS_OBSERVED",findings};
+ return {product:"ReproLatch Offline n8n Screening",version:"0.3-browser-demo",checked_at:new Date().toISOString(),scope:"Selected offline consistency checks; not executed QA",node_count:doc.nodes.length,summary,structural_status:summary.ERROR?"STRUCTURAL_ERRORS":"NO_STRUCTURAL_ERRORS_OBSERVED",findings};
 }
 function render(rep){
  $("problem").classList.add("hide");$("results").classList.remove("hide");
@@ -108,6 +108,6 @@ function issue(e){$("problem").textContent="Unable to inspect: "+(e&&e.message?e
 $("run").addEventListener("click",async()=>{try{const file=$("file").files[0];if(!file)throw Error("Choose a workflow JSON or try fictional sample.");if(file.size>MAX)throw Error("File exceeds 2 MiB.");await review(await file.text())}catch(e){issue(e)}});
 $("sample").addEventListener("click",()=>review(JSON.stringify(sample)).catch(issue));
 function download(name,content,type){const blob=new Blob([content],{type});const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-$("jsonDownload").addEventListener("click",()=>{if(last)download("agentproof-evidence.json",JSON.stringify(last,null,2),"application/json")});
-$("htmlDownload").addEventListener("click",()=>{if(!last)return;const esc=s=>String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));const rows=last.findings.map(f=>"<tr>"+[f.level,f.rule,f.node,f.message].map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("");const html="<!doctype html><html><head><meta charset='utf-8'><title>AgentProof report</title><style>body{font:15px system-ui;margin:30px;color:#263243}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body><h1>AgentProof Offline Evidence</h1><p>"+esc(last.structural_status)+" · "+esc(last.checked_at)+"</p><p>SHA-256 "+esc(last.input_sha256)+"</p><table><tr><th>Status</th><th>Rule</th><th>Node</th><th>Finding</th></tr>"+rows+"</table><p>Static-only review. No runtime, AI behavior, security certification, or production verification. REVIEW is not a confirmed defect; INCONCLUSIVE is not PASS.</p></body></html>";download("agentproof-evidence.html",html,"text/html")});
+$("jsonDownload").addEventListener("click",()=>{if(last)download("reprolatch-evidence.json",JSON.stringify(last,null,2),"application/json")});
+$("htmlDownload").addEventListener("click",()=>{if(!last)return;const esc=s=>String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));const rows=last.findings.map(f=>"<tr>"+[f.level,f.rule,f.node,f.message].map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("");const html="<!doctype html><html><head><meta charset='utf-8'><title>ReproLatch report</title><style>body{font:15px system-ui;margin:30px;color:#263243}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body><h1>ReproLatch Offline Evidence</h1><p>"+esc(last.structural_status)+" · "+esc(last.checked_at)+"</p><p>SHA-256 "+esc(last.input_sha256)+"</p><table><tr><th>Status</th><th>Rule</th><th>Node</th><th>Finding</th></tr>"+rows+"</table><p>Static-only review. No runtime, AI behavior, security certification, or production verification. REVIEW is not a confirmed defect; INCONCLUSIVE is not PASS.</p></body></html>";download("reprolatch-evidence.html",html,"text/html")});
 </script></body></html>
