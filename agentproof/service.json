@@ -1,0 +1,40 @@
+{
+  "name": "AgentProof",
+  "status": "prototype",
+  "offer": "Independent AI agent staging acceptance snapshot",
+  "price": {
+    "amount": 79,
+    "currency": "USD",
+    "type": "fixed_pilot"
+  },
+  "scope": {
+    "max_http_scenarios": 3,
+    "testing_environment": "owner-authorized staging only",
+    "optional": [
+      "sanitized n8n workflow export offline review",
+      "A2A Agent Card static metadata review"
+    ],
+    "deliverables": [
+      "HTML report",
+      "JSON evidence",
+      "prioritized findings"
+    ]
+  },
+  "exclusions": [
+    "live production changes",
+    "security certification",
+    "full AI behavior evaluation",
+    "payment automation"
+  ],
+  "contact": {
+    "email": "briefflowge@gmail.com",
+    "requires_written_authorization": true
+  },
+  "paid_sales_confirmed": 0,
+  "automated_checkout": false,
+  "links": {
+    "home": "https://agentproof-pilot-20261106.onrender.com/",
+    "sample": "https://agentproof-pilot-20261106.onrender.com/sample.html"
+  },
+  "schema_note": "Custom informative JSON. Not an A2A Agent Card or x402 manifest."
+}
