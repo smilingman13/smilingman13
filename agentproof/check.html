@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgentProof · Try a Private n8n Workflow Check</title>
+<meta name="description" content="Try AgentProof's free local-only n8n workflow structural review. No uploads, no keys.">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#15243c;font:15px/1.6 system-ui,Arial}
+header{background:#102f42;color:#fff;padding:35px max(20px,calc((100vw - 980px)/2))}
+h1{line-height:1.15;font-size:clamp(1.8rem,4vw,2.6rem);margin:10px 0}
+h2{margin:5px 0 12px;font-size:1.3rem}.sub{color:#dce7ee;max-width:740px}
+main{max-width:1020px;margin:25px auto;padding:0 18px}.card{background:#fff;border:1px solid #dbe4ec;border-radius:12px;padding:23px;margin:15px 0}
+.tag{font-weight:700;font-size:.78rem;letter-spacing:.1em;color:#8debd2}
+label{display:block;font-weight:650;margin-bottom:9px}
+input[type=file]{display:block;width:100%;max-width:640px;padding:11px;background:#f5f8fc;border:1px solid #c9d6e1;border-radius:8px}
+button,.linkbtn{background:#075b76;color:#fff;border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;margin:12px 8px 4px 0}
+button.alt{background:#e7eff5;color:#113d52}button:disabled{opacity:.5;cursor:not-allowed}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.metric{background:#f3f7fa;padding:14px;border-radius:9px}.metric b{font-size:1.6rem;display:block}.metric small{color:#53657a}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid #e4e9ef}
+th{background:#eef4f8}.badge{display:inline-block;border-radius:5px;padding:2px 7px;font-size:.78rem;font-weight:750}
+.ERROR{background:#fce6e6;color:#993a3a}.REVIEW{background:#fff2d7;color:#855b00}.INCONCLUSIVE{background:#e5ebf7;color:#445b80}
+.note{background:#e7f5f0;border-left:4px solid #15a580;padding:14px;border-radius:4px}
+.alert{background:#fff2ef;border-left:4px solid #c85541;padding:14px;margin-top:12px}
+small,footer{color:#5b6a80}.hide{display:none}.scroll{overflow-x:auto}
+@media(max-width:610px){.card{padding:14px}th,td{padding:7px;font-size:12px}}
+</style></head><body>
+<header><div class="tag">AGENTPROOF · PRIVATE DEMO</div><h1>Check your n8n workflow export — in your browser.</h1>
+<p class="sub">A free structural screening before the paid acceptance test. No network upload, account, login or runtime credentials.</p>
+<a href="./" style="color:#a9eed8">← Back to the $79 pilot offer</a></header>
+<main><section class="card"><h2>1. Choose a sanitized n8n JSON export</h2>
+<p>All analysis runs locally in your browser. Do not use an export that contains real credentials, customer data or sensitive payloads; the browser will read it into memory.</p>
+<label for="file">Select .json file (maximum 2 MiB)</label>
+<input type="file" id="file" accept=".json,application/json">
+<button id="run">Inspect file</button><button class="alt" id="sample">Try fictional sample</button>
+<div id="problem" class="alert hide" role="alert"></div>
+</section>
+<section id="results" class="card hide" aria-live="polite">
+<h2>2. Structural findings</h2><div id="summary" class="summary"></div>
+<p><small id="hash"></small></p>
+<div class="scroll"><table><thead><tr><th>Status</th><th>Rule</th><th>Node</th><th>What was observed</th></tr></thead><tbody id="findings"></tbody></table></div>
+<button id="jsonDownload">Download evidence JSON</button><button id="htmlDownload" class="alt">Download HTML report</button>
+<p class="note"><b>Interpretation:</b> REVIEW findings require human checking and are not confirmed bugs. INCONCLUSIVE means not tested. Structural checks cannot establish safe execution, reliable AI judgment, security or production readiness.</p>
+</section><section class="card"><h2>Need more than a linter?</h2>
+<p>The paid <strong>$79 AgentProof pilot</strong> checks up to three owner-approved, non-destructive staging HTTP scenarios and provides an evidence-linked report with observed behavior. The static report shown here is free; the paid service adds executed tests.</p>
+<a class="linkbtn" href="mailto:briefflowge@gmail.com?subject=AgentProof%20%2479%20staging%20pilot%20enquiry">Ask about the pilot</a>
+<p><small>No production mutations, intrusion testing, AI-behavior certification, credential sharing or guaranteed readiness.</small></p></section>
+<footer>AgentProof v0.3 · Offline-only demo · No third-party analytics, network fetch or uploaded files.</footer></main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const MAX=2*1024*1024; let last=null;
+const sample={nodes:[
+{id:"n1",name:"Webhook",type:"n8n-nodes-base.webhook",parameters:{authentication:"none"}},
+{id:"n2",name:"HTTP Request",type:"n8n-nodes-base.httpRequest",parameters:{},retryOnFail:false},
+{id:"n3",name:"AI Agent",type:"@n8n/n8n-nodes-langchain.agent",parameters:{}},
+{id:"n4",name:"Debug",type:"n8n-nodes-base.code",parameters:{}}
+],connections:{"Webhook":{main:[[{node:"HTTP Request",type:"main",index:0}]]},"HTTP Request":{main:[[{node:"AI Agent",type:"main",index:0}]]}},settings:{}};
+function inspect(doc){
+ if(!doc||Array.isArray(doc)||typeof doc!=="object"||!Array.isArray(doc.nodes)||!doc.connections||Array.isArray(doc.connections)||typeof doc.connections!=="object")throw Error("Expected workflow object containing nodes[] and connections{}.");
+ if(doc.nodes.length>1000)throw Error("Too many nodes (limit 1,000).");
+ const findings=[];const record=(rule,level,message,node="—",category="structural")=>findings.push({rule,level,message,node,category});
+ const names=[],ids=[],nameIndex=new Map(),linked=new Set();
+ for(let i=0;i<doc.nodes.length;i++){
+ const n=doc.nodes[i];if(!n||Array.isArray(n)||typeof n!=="object"){record("NODE_OBJECT","ERROR","Node is not an object",String(i));continue}
+ if(typeof n.name!=="string"||!n.name.trim()||typeof n.type!=="string"||!n.type.trim()){record("NODE_IDENTITY","ERROR","Missing valid node name/type",String(i));continue}
+ names.push(n.name);nameIndex.set(n.name,n);
+ if(n.id!==undefined&&typeof n.id!=="string")record("NODE_ID_TYPE","ERROR","Node ID must be a string",n.name);
+ if(typeof n.id==="string")ids.push(n.id);
+ const type=n.type.toLowerCase();
+ if(n.disabled===true)record("DISABLED_NODE","REVIEW","Node disabled; confirm this is intended",n.name,"heuristic");
+ if(/executecommand|readwritefile|code/.test(type))record("POWERFUL_NODE","REVIEW","Check execution or file-node permissions and input handling",n.name,"heuristic");
+ if(type.includes("webhook")&&!type.includes("respondtowebhook")&&(!n.parameters||n.parameters.authentication==null||n.parameters.authentication==="none"))record("WEBHOOK_AUTH","REVIEW","Webhook authentication not declared; confirm public exposure is intended",n.name,"heuristic");
+ if(type.includes("httprequest")&&n.retryOnFail!==true)record("HTTP_RETRY","REVIEW","Node-level retry not enabled; assess broader recovery logic",n.name,"heuristic");
+ if(type.includes("langchain.agent")||type.endsWith(".agent"))record("AGENT_BEHAVIOR","INCONCLUSIVE","AI behavior and tool-choice require executed scenarios",n.name,"not_tested");
+ }
+ for(const [rule,arr] of [["NODE_NAME_DUPLICATE",names],["NODE_ID_DUPLICATE",ids]]){const cnt=new Map();for(const x of arr)cnt.set(x,(cnt.get(x)||0)+1);for(const [x,c] of cnt)if(c>1)record(rule,"ERROR","Duplicate identifier: "+c+" occurrences",x)}
+ for(const [src,targets] of Object.entries(doc.connections)){
+ if(!nameIndex.has(src))record("DANGLING_SOURCE","ERROR","Connection source is missing",src.slice(0,140));
+ if(!targets||Array.isArray(targets)||typeof targets!=="object"){record("CONNECTION_MAP","ERROR","Invalid connection map",src);continue}
+ for(const [kind,branches] of Object.entries(targets)){
+ if(!Array.isArray(branches)){record("CONNECTION_BRANCH","ERROR","Connection output must be an array",src);continue}
+ for(const group of branches){if(!Array.isArray(group)){record("CONNECTION_TARGETS","ERROR","Branch must contain an array",src);continue}
+ for(const x of group){if(!x||typeof x!=="object"||typeof x.node!=="string"){record("CONNECTION_TARGET","ERROR","Target needs a node name",src);continue}
+ linked.add(src);linked.add(x.node);if(!nameIndex.has(x.node))record("DANGLING_TARGET","ERROR","Connection target is missing",x.node.slice(0,140));
+ }}}}
+ if(doc.nodes.length>1)for(const name of names)if(!linked.has(name))record("ISOLATED_NODE","REVIEW","Disconnected node; confirm intentional",name,"heuristic");
+ if(doc.settings!==undefined&&(typeof doc.settings!=="object"||doc.settings===null||Array.isArray(doc.settings)))record("SETTINGS_TYPE","ERROR","Settings must be an object");
+ else if(!doc.settings?.errorWorkflow)record("ERROR_WORKFLOW","REVIEW","No centralized error workflow referenced","—","heuristic");
+ if(doc.pinData&&Object.keys(doc.pinData).length)record("PIN_DATA","REVIEW","Pinned sample data present; sanitize before sharing","—","heuristic");
+ record("RUNTIME_NOT_TESTED","INCONCLUSIVE","No credentials, workflow execution, integrations or AI behavior have been tested","—","not_tested");
+ const summary={ERROR:0,REVIEW:0,INCONCLUSIVE:0};findings.forEach(x=>summary[x.level]++);
+ return {product:"AgentProof Offline n8n Screening",version:"0.3-browser-demo",checked_at:new Date().toISOString(),scope:"Selected offline consistency checks; not executed QA",node_count:doc.nodes.length,summary,structural_status:summary.ERROR?"STRUCTURAL_ERRORS":"NO_STRUCTURAL_ERRORS_OBSERVED",findings};
+}
+function render(rep){
+ $("problem").classList.add("hide");$("results").classList.remove("hide");
+ $("summary").replaceChildren();for(const [name,value] of [["Nodes",rep.node_count],["Errors",rep.summary.ERROR],["Review",rep.summary.REVIEW],["Inconclusive",rep.summary.INCONCLUSIVE]]){const el=document.createElement("div");el.className="metric";const b=document.createElement("b");b.textContent=value;const small=document.createElement("small");small.textContent=name;el.append(b,small);$("summary").append(el)}
+ $("hash").textContent="Input SHA-256: "+(rep.input_sha256||"unavailable")+" · "+rep.checked_at;
+ $("findings").replaceChildren();for(const f of rep.findings){let tr=document.createElement("tr");for(const val of [f.level,f.rule,f.node,f.message]){let td=document.createElement("td");td.textContent=val;if(val===f.level){td.className="badge "+f.level}tr.append(td)}$("findings").append(tr)}
+ last=rep;$("results").scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function review(text){
+ if(new TextEncoder().encode(text).length>MAX)throw Error("File exceeds 2 MiB maximum.");
+ const doc=JSON.parse(text);const rep=inspect(doc);
+ const raw=new TextEncoder().encode(text);const digest=await crypto.subtle.digest("SHA-256",raw);
+ rep.input_sha256=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
+ render(rep);
+}
+function issue(e){$("problem").textContent="Unable to inspect: "+(e&&e.message?e.message:String(e));$("problem").classList.remove("hide");$("results").classList.add("hide");last=null}
+$("run").addEventListener("click",async()=>{try{const file=$("file").files[0];if(!file)throw Error("Choose a workflow JSON or try fictional sample.");if(file.size>MAX)throw Error("File exceeds 2 MiB.");await review(await file.text())}catch(e){issue(e)}});
+$("sample").addEventListener("click",()=>review(JSON.stringify(sample)).catch(issue));
+function download(name,content,type){const blob=new Blob([content],{type});const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+$("jsonDownload").addEventListener("click",()=>{if(last)download("agentproof-evidence.json",JSON.stringify(last,null,2),"application/json")});
+$("htmlDownload").addEventListener("click",()=>{if(!last)return;const esc=s=>String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));const rows=last.findings.map(f=>"<tr>"+[f.level,f.rule,f.node,f.message].map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("");const html="<!doctype html><html><head><meta charset='utf-8'><title>AgentProof report</title><style>body{font:15px system-ui;margin:30px;color:#263243}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body><h1>AgentProof Offline Evidence</h1><p>"+esc(last.structural_status)+" · "+esc(last.checked_at)+"</p><p>SHA-256 "+esc(last.input_sha256)+"</p><table><tr><th>Status</th><th>Rule</th><th>Node</th><th>Finding</th></tr>"+rows+"</table><p>Static-only review. No runtime, AI behavior, security certification, or production verification. REVIEW is not a confirmed defect; INCONCLUSIVE is not PASS.</p></body></html>";download("agentproof-evidence.html",html,"text/html")});
+</script></body></html>
