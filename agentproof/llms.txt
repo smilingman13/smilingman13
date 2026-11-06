@@ -1,0 +1,12 @@
+# AgentProof — evidence-based AI integration QA
+> Independent prototype service for authorized, bounded AI-agent release acceptance checks.
+
+- Main page: https://agentproof-pilot-20261106.onrender.com/
+- Synthetic evidence example: https://agentproof-pilot-20261106.onrender.com/sample.html
+- Machine-readable service description (custom JSON, not A2A or MCP): https://agentproof-pilot-20261106.onrender.com/service.json
+
+## Offered pilot
+$79 fixed, up to 3 written-authorized staging HTTP checks, optional offline sanitized n8n/A2A metadata review, HTML/JSON evidence, prioritized notes. Contact briefflowge@gmail.com. No production data or API keys in initial contact.
+
+## Limitations
+No security certification, full LLM reliability guarantee, production changes, or automated payment. No customer has been audited yet.
