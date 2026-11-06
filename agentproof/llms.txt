@@ -1,4 +1,4 @@
-# AgentProof — evidence-based AI integration QA
+# ReproLatch — evidence-based AI integration QA
 > Independent prototype service for authorized, bounded AI-agent release acceptance checks.
 
 - Main page: https://agentproof-pilot-20261106.onrender.com/
