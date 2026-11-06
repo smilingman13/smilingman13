@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://agentproof-pilot-20261106.onrender.com/sitemap.xml
